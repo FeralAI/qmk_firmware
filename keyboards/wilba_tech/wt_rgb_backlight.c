@@ -64,7 +64,7 @@
 #endif
 #endif
 
-#define BACKLIGHT_EFFECT_MAX 10
+#define BACKLIGHT_EFFECT_MAX 14
 
 backlight_config g_config = {
     .use_split_backspace = RGB_BACKLIGHT_USE_SPLIT_BACKSPACE,
@@ -674,7 +674,7 @@ const Point g_map_led_to_point[BACKLIGHT_LED_COUNT] PROGMEM = {
 const Point g_map_led_to_point_polar[BACKLIGHT_LED_COUNT] PROGMEM = {
     // LA0..LA17
     {59,129}, {69,129}, {80,138}, {88,154}, {95,175}, {100,200}, {104,227}, {107,255}, {128,226},
-    {59,255}, {64,255}, {69,255}, {75,255}, {80,255}, {84,255}, {88,255}, {91,255}, {95,255},  
+    {59,255}, {64,255}, {69,255}, {75,255}, {80,255}, {84,255}, {88,255}, {91,255}, {95,255},
     // LB0..LB17
     {53,255}, {48,255}, {44,255}, {40,255}, {35,255}, {255,255}, {255,255}, {255,255}, {255,255},
     {48,138}, {40,154}, {33,175}, {28,200}, {24,227}, {21,255}, {255,255}, {255,255}, {255,255},
@@ -685,7 +685,7 @@ const Point g_map_led_to_point_polar[BACKLIGHT_LED_COUNT] PROGMEM = {
     {0,26}, {0,60}, {0,94}, {0,128}, {0,162}, {0,218}, {227,193}, {234,245}, {255,255},
     {195,128}, {205,135}, {214,149}, {221,169}, {255,255}, {210,244}, {213,255}, {218,255}, {222,255},
     // LE0..LE17
-    {255,255}, {255,255}, {255,255}, {255,255}, {255,255}, {255,255}, {255,255}, {255,255}, {255,255}, 
+    {255,255}, {255,255}, {255,255}, {255,255}, {255,255}, {255,255}, {255,255}, {255,255}, {255,255},
     {70,255}, {66,255}, {62,255}, {59,255}, {56,255}, {73,255}, {76,255}, {79,255}, {84,255},
     // LF0..LF17
     {52,255}, {49,255}, {47,255}, {44,255}, {41,255}, {38,255}, {37,255}, {25,255}, {14,255},
@@ -749,7 +749,7 @@ const Point g_map_led_to_point_polar[BACKLIGHT_LED_COUNT] PROGMEM = {
 const Point g_map_led_to_point[BACKLIGHT_LED_COUNT] PROGMEM = {
     // LA1..LA50
     {0,0}, {4,16}, {6,32}, {2,48}, {16,0}, {24,16}, {28,32}, {36,48}, {32,0}, {40,16}, {44,32}, {52,48}, {48,0},
-    {56,16}, {60,32}, {68,48}, {64,0}, {72,16}, {76,32}, {84,48}, {80,0}, {88,16}, {92,32}, {100,48}, {96,0}, {104,16}, 
+    {56,16}, {60,32}, {68,48}, {64,0}, {72,16}, {76,32}, {84,48}, {80,0}, {88,16}, {92,32}, {100,48}, {96,0}, {104,16},
     {108,32}, {116,48}, {112,0}, {120,16}, {124,32}, {132,48}, {128,0}, {136,16}, {140,32}, {148,48}, {144,0}, {152,16},
     {156,32}, {164,48}, {160,0}, {168,16}, {172,32}, {180,48}, {176,0}, {184, 16}, {188,32}, {20,48}, {192,0}, {200,16},
     {255,255},// LA51 does not exit, dummy
@@ -762,7 +762,7 @@ const Point g_map_led_to_point_polar[BACKLIGHT_LED_COUNT] PROGMEM = {
     // LA1..LA50
     {96,255}, {109,255}, {128,242}, {147,255}, {93,255}, {105,238}, {128,192}, {154,216}, {89,255}, {101,208}, {128,155}, {159,188}, {85,255},
     {96,181}, {128,119}, {165,163}, {81,255}, {89,157}, {128,82}, {173,143}, {75,255}, {81,139}, {128,46}, {183,131}, {70,255}, {70,129},
-    {129,9}, {195,128}, {64,255}, {58,129}, {255,27}, {206,136}, {58,255}, {47,139}, {255,64}, {215,152}, {53,255}, {39,157}, {255,101}, 
+    {129,9}, {195,128}, {64,255}, {58,129}, {255,27}, {206,136}, {58,255}, {47,139}, {255,64}, {215,152}, {53,255}, {39,157}, {255,101},
     {222,175}, {47,255}, {32,181}, {255,137}, {228,201}, {43,255}, {27,208}, {255, 174}, {150,246}, {39,255}, {23,238},
     {255,255},// LA51 does not exit, dummy
     // LA52..LA60
@@ -1491,6 +1491,83 @@ void backlight_effect_cycle_radial2(void)
     }
 }
 
+// Custom backlight effects
+uint8_t shift_hue(uint8_t hue, float shift)
+{
+    uint16_t newhue = hue + shift;
+    if (newhue > 255)
+        return newhue - 255;
+
+    return (uint8_t)newhue;
+}
+
+void backlight_effect_diagonal_rainbow(void)
+{
+    HSV hsv = { .h = 0, .s = 255, .v = g_config.brightness };
+    RGB rgb;
+    Point point;
+    for (int i = 0; i < BACKLIGHT_LED_COUNT; i++)
+    {
+        map_led_to_point(i, &point);
+        hsv.h = point.x + point.y;
+        rgb = hsv_to_rgb(hsv);
+        backlight_set_color(i, rgb.r, rgb.g, rgb.b);
+    }
+}
+
+void backlight_effect_static_radial(void)
+{
+    HSV hsv = {.h = 0, .s = 255, .v = g_config.brightness};
+    RGB rgb;
+    Point point;
+    for (int i = 0; i < BACKLIGHT_LED_COUNT; i++)
+    {
+        map_led_to_point_polar(i, &point);
+        hsv.h = shift_hue(point.x, 135);
+        hsv.s = point.y;
+        rgb = hsv_to_rgb(hsv);
+        backlight_set_color(i, rgb.r, rgb.g, rgb.b);
+    }
+}
+
+void backlight_effect_static_rainbow(void)
+{
+    HSV hsv = { .h = 0, .s = 255, .v = g_config.brightness };
+    RGB rgb;
+    Point point;
+    for (int i = 0; i < BACKLIGHT_LED_COUNT; i++)
+    {
+        map_led_to_point(i, &point);
+        hsv.h = point.x;
+        rgb = hsv_to_rgb(hsv);
+        backlight_set_color(i, rgb.r, rgb.g, rgb.b);
+    }
+}
+
+void backlight_effect_miami(void)
+{
+    RGB rgb1 = { .r = 0, .g = 255, .b = 255 };
+    RGB rgb2 = { .r = 255, .g = 0, .b = 192 };
+
+    for (int row = 0; row < MATRIX_ROWS; row++)
+    {
+        for (int column = 0; column < MATRIX_COLS; column++)
+        {
+            uint8_t index;
+            map_row_column_to_led(row, column, &index);
+            if (index < BACKLIGHT_LED_COUNT)
+            {
+                if ((g_config.alphas_mods[row] & (1 << column)) == 0)
+                {
+                    backlight_set_color(index, rgb1.r, rgb1.g, rgb1.b);
+                } else {
+                    backlight_set_color(index, rgb2.r, rgb2.g, rgb2.b);
+                }
+            }
+        }
+    }
+}
+
 #if defined(RGB_BACKLIGHT_M6_B)
 void backlight_effect_custom_colors(void)
 {
@@ -1694,6 +1771,18 @@ static void gpt_backlight_timer_task(GPTDriver *gptp)
             break;
         case 10:
             backlight_effect_cycle_radial2();
+            break;
+        case 11:
+            backlight_effect_miami();
+            break;
+        case 12:
+            backlight_effect_static_rainbow();
+            break;
+        case 13:
+            backlight_effect_diagonal_rainbow();
+            break;
+        case 14:
+            backlight_effect_static_radial();
             break;
         default:
             backlight_effect_all_off();
@@ -2179,7 +2268,7 @@ void backlight_init_drivers(void)
     // This actually updates the LED drivers
     IS31FL3731_update_led_control_registers( ISSI_ADDR_1, 0 );
     IS31FL3731_update_led_control_registers( ISSI_ADDR_2, 1 );
-#if defined(RGB_BACKLIGHT_U80_A)    
+#if defined(RGB_BACKLIGHT_U80_A)
     IS31FL3731_update_led_control_registers( ISSI_ADDR_3, 2 );
 #endif
 #endif // !defined(RGB_BACKLIGHT_M6_B)
