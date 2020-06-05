@@ -166,10 +166,10 @@ void mcp23017_begin(uint8_t addrOffset);
 void mcp23017_begin_default(void);
 
 // Read/write register functions
-uint8_t mcp23017_read(uint8_t reg, uint8_t *data);
-uint8_t mcp23017_read_bytes(uint8_t reg, uint8_t data[]);
-uint8_t mcp23017_write(uint8_t reg, uint8_t data);
-uint8_t mcp23017_write_bytes(uint8_t reg, uint8_t data[]);
+uint8_t mcp23017_readRegister(uint8_t reg, uint8_t *data);
+uint8_t mcp23017_readRegisters(uint8_t reg, uint16_t* data);
+uint8_t mcp23017_writeRegister(uint8_t reg, uint8_t data);
+uint8_t mcp23017_writeRegisters(uint8_t reg, uint16_t data);
 
 // GPIO single-pin functions
 uint8_t mcp23017_digitalRead(uint8_t pin);
@@ -185,7 +185,7 @@ void mcp23017_writeGPIOAB(uint16_t ba);
 
 // Interrupt functions
 void mcp23017_setupInterrupts(uint8_t mirroring, uint8_t open, uint8_t polarity);
-void mcp23017_setupInterruptPin(uint8_t p, uint8_t mode);
+void mcp23017_setupInterruptPin(uint8_t pin, uint8_t mode);
 uint8_t mcp23017_getLastInterruptPin(void);
 uint8_t mcp23017_getLastInterruptPinValue(void);
 

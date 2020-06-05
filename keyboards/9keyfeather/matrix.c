@@ -164,15 +164,15 @@ uint8_t matrix_key_count(void) {
 }
 
 static void init_cols(void) {
-    mcp23017_write(MCP23017_IODIRB, 0xFF); // Set column directions to INPUT
-    mcp23017_write(MCP23017_GPIOB, 0xFF);  // Set logic levels to HIGH
-    mcp23017_write(MCP23017_GPPUB, 0xFF);  // Set pull-up resistors ON
+    mcp23017_writeRegister(MCP23017_IODIRB, 0xFF); // Set column directions to INPUT
+    mcp23017_writeRegister(MCP23017_GPIOB, 0xFF);  // Set logic levels to HIGH
+    mcp23017_writeRegister(MCP23017_GPPUB, 0xFF);  // Set pull-up resistors ON
 }
 
 static void init_rows(void) {
-    mcp23017_write(MCP23017_IODIRA, 0xFF); // Set column directions to INPUT
-    mcp23017_write(MCP23017_GPIOA, 0x00);  // Set logic levels to LOW
-    mcp23017_write(MCP23017_GPPUA, 0x00);  // Set pull-up resistors OFF
+    mcp23017_writeRegister(MCP23017_IODIRA, 0xFF); // Set column directions to INPUT
+    mcp23017_writeRegister(MCP23017_GPIOA, 0x00);  // Set logic levels to LOW
+    mcp23017_writeRegister(MCP23017_GPPUA, 0x00);  // Set pull-up resistors OFF
 }
 
 static matrix_row_t read_cols() {
