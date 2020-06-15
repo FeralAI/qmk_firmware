@@ -23,18 +23,20 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define VENDOR_ID       0xFEED
 #define PRODUCT_ID      0x0000
 #define DEVICE_VER      0x0001
-#define MANUFACTURER    Skuby
+#define MANUFACTURER    jskuby
 #define PRODUCT         9KeyFeather
 #define DESCRIPTION     9 Key Feather
+
+/* USB parameters */
+#define USB_POLLING_INTERVAL_MS 1
 
 /* Matrix values */
 #define MATRIX_ROWS 3
 #define MATRIX_COLS 3
-#define MATRIX_COL_PINS { GPB0, GPB1, GPB2 }
-#define MATRIX_ROW_PINS { GPA0, GPA1, GPA2 }
-#define UNUSED_PINS
-
+#define MATRIX_COL_PINS { GPA0, GPA1, GPA2 } // Col pins are read from the I/O expander
+#define MATRIX_ROW_PINS { F7,   F6,   F5   } // Row pins are read from the Feather pins, unused: F4, F1, F0
 #define DIODE_DIRECTION COL2ROW
-
-/* Debounce reduces chatter (unintended double-presses) - set 0 if debouncing is not needed */
 #define DEBOUNCE 0
+
+/* SPI Overrides */
+#define SPI_SCK_PIN C7

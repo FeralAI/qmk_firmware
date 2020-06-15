@@ -1,6 +1,6 @@
 # 9-key Feather Pad
 
-This is a keyboard template based on the Adafruit Feather 32u4 BLE module. This firmware currently only uses pins from a MCP23017 GPIO expander for the keyboard matrix. It also uses an Adafruit FeatherWing 128x32 OLED for display using the built-in QMK OLED driver.
+This is a keyboard template based on the Adafruit Feather 32u4 BLE module + MCP23017 I/O expander. It also uses an Adafruit FeatherWing 128x32 OLED for display using the built-in QMK OLED driver.
 
 ## Building
 

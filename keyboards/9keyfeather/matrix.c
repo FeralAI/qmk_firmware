@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include <avr/io.h>
@@ -10,17 +11,6 @@
 #include "mcp23017.h"
 #include "quantum.h"
 
-/*
-* This constant define not debouncing time in msecs, but amount of matrix
-* scan loops which should be made to get stable debounced results.
-*
-* On Ergodox matrix scan rate is relatively low, because of slow I2C.
-* Now it's only 317 scans/second, or about 3.15 msec/scan.
-* According to Cherry specs, debouncing time is 5 msec.
-*
-* And so, there is no sense to have DEBOUNCE higher than 2.
-*/
-
 #ifndef DEBOUNCE
 #define DEBOUNCE 5
 #endif
@@ -28,7 +18,6 @@
 /* matrix state(1:on, 0:off) */
 static matrix_row_t matrix[MATRIX_ROWS];
 static pin_t row_pins[MATRIX_ROWS] = MATRIX_ROW_PINS;
-// static pin_t col_pins[MATRIX_COLS] = MATRIX_COL_PINS;
 
 // Debouncing: store for each key the number of scans until it's eligible to
 // change.  When scanning the matrix, ignore any changes in keys that have
@@ -39,7 +28,7 @@ static void init_cols(void);
 static void init_rows(void);
 static matrix_row_t read_cols(void);
 static void select_row(uint8_t row);
-static void unselect_row(uint8_t);
+static void unselect_row(uint8_t row);
 
 __attribute__ ((weak))
 void matrix_init_user(void) {}
@@ -120,15 +109,12 @@ void debounce_report(matrix_row_t change, uint8_t row) {
 
 uint8_t matrix_scan(void) {
     for (uint8_t i = 0; i < MATRIX_ROWS; i++) {
-        uint8_t pin = row_pins[i];
-        select_row(pin);
-        // FIXME: Skip wait for now, i2c should be slow enough
-        // wait_us(30);
+        select_row(i);
         matrix_row_t mask = debounce_mask(i);
         matrix_row_t cols = (read_cols() & mask) | (matrix[i] & ~mask);
         debounce_report(cols ^ matrix[i], i);
         matrix[i] = cols;
-        unselect_row(pin);
+        unselect_row(i);
     }
 
     matrix_scan_quantum();
@@ -164,28 +150,34 @@ uint8_t matrix_key_count(void) {
 }
 
 static void init_cols(void) {
+    mcp23017_writeRegister(MCP23017_IODIRA, 0xFF); // Set column directions to INPUT
+    mcp23017_writeRegister(MCP23017_GPIOA, 0xFF);  // Set logic levels to HIGH
+    mcp23017_writeRegister(MCP23017_GPPUA, 0xFF);  // Set pull-up resistors ON
+
     mcp23017_writeRegister(MCP23017_IODIRB, 0xFF); // Set column directions to INPUT
     mcp23017_writeRegister(MCP23017_GPIOB, 0xFF);  // Set logic levels to HIGH
     mcp23017_writeRegister(MCP23017_GPPUB, 0xFF);  // Set pull-up resistors ON
 }
 
 static void init_rows(void) {
-    mcp23017_writeRegister(MCP23017_IODIRA, 0xFF); // Set column directions to INPUT
-    mcp23017_writeRegister(MCP23017_GPIOA, 0x00);  // Set logic levels to LOW
-    mcp23017_writeRegister(MCP23017_GPPUA, 0x00);  // Set pull-up resistors OFF
+    for (uint8_t r = 0; r < MATRIX_ROWS; r++) {
+        unselect_row(r);
+    }
 }
 
-static matrix_row_t read_cols() {
-    return ~mcp23017_readGPIO(1);
+static matrix_row_t read_cols(void) {
+    return ~mcp23017_readGPIOAB();
 }
 
-static void select_row(uint8_t pin) {
-    // Enable row by setting direction to OUTPUT
-    mcp23017_pinMode(pin, OUTPUT);
+static void select_row(uint8_t row) {
+    // Enable row by setting to OUTPUT LOW
+    pin_t pin = row_pins[row];
+    setPinOutput(pin);
+    writePinLow(pin);
 }
 
-static void unselect_row(uint8_t pin) {
-    // Disable row by setting direction to INPUT
-    mcp23017_pinMode(pin, INPUT);
+static void unselect_row(uint8_t row) {
+    // Disable row by setting to INPUT
+    pin_t pin = row_pins[row];
+    setPinInput(pin);
 }
-
